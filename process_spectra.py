@@ -16,6 +16,11 @@ import os
 import utils
 import spectral_model
 
+# dr12
+os.environ["SDSS_LOCAL_SAS_MIRROR"] = "data.sdss3.org/sas/"
+os.environ["RESULTS_VERS"] = "v603"
+os.environ["APOGEE_APOKASC_REDUX"] = "v6.2a"
+
 import apogee.tools.read as apread
 from apogee.tools import bitmask
 from apogee.spec import continuum

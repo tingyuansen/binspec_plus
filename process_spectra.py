@@ -67,8 +67,8 @@ def read_batch_of_spectra(batch_count, batch_size = 10000):
     
     # loop through the individual targets
     for ii in range(nspec):
-        field = catalog['FIELD'][ii].decode()
-        ap_id = catalog['APOGEE_ID'][ii].decode()
+        field = catalog['FIELD'][ii]
+        ap_id = catalog['APOGEE_ID'][ii]
         loc_id = catalog['LOCATION_ID'][ii]
         print('processing target %d with id %s' % (ii, ap_id))
         
@@ -135,8 +135,8 @@ def get_combined_spectrum_single_object(apogee_id, catalog = None, save_local = 
     if not len(msk):
         raise ValueError('the desired Apogee ID was not found in the allStar catalog.')
     
-    field = catalog['FIELD'][msk[0]].decode()
-    ap_id = apogee_id.decode()
+    field = catalog['FIELD'][msk[0]]
+    ap_id = apogee_id
     loc_id = catalog['LOCATION_ID'][msk[0]]
         
     if loc_id == 1:

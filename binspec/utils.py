@@ -9,13 +9,13 @@ def read_in_neural_network(name = 'normalized_spectra'):
     can train your own networks and edit this function to read them in. 
     '''
     if name == 'normalized_spectra':
-        path = 'neural_nets/NN_normalized_spectra.npz'
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)),'neural_nets/NN_normalized_spectra.npz')
     elif name == 'unnormalized_spectra':
-        path = 'neural_nets/NN_unnormalized_spectra.npz'
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)),'neural_nets/NN_unnormalized_spectra.npz')
     elif name == 'radius':
-        path = 'neural_nets/NN_radius.npz'
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)),'neural_nets/NN_radius.npz')
     elif name == 'Teff2_logg2':
-        path = 'neural_nets/NN_Teff2_logg2.npz'
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)),'neural_nets/NN_Teff2_logg2.npz')
     tmp = np.load(path)
     
     # some of the networks we train have one hidden layer; others have two. 
@@ -46,7 +46,7 @@ def load_wavelength_array():
     '''
     read in the default wavelength grid onto which we interpolate all spectra
     '''
-    path = 'other_data/apogee_wavelength.npz'
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)),'other_data/apogee_wavelength.npz')
     tmp = np.load(path)
     wavelength = tmp['wavelength']
     tmp.close()
@@ -57,7 +57,7 @@ def load_cannon_contpixels():
     read in the default list of APOGEE pixels to use for continuum fitting. 
     These are taken from Melissa Ness' work with the Cannon
     '''
-    path = 'other_data/cannon_cont_pixels_apogee.npz'
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)),'other_data/cannon_cont_pixels_apogee.npz')
     tmp = np.load(path)
     pixels_cannon = tmp['pixels_cannon']
     tmp.close()
@@ -69,7 +69,8 @@ def load_visit_wavelength():
     this is different from the normal wavelength grid for combined spectra, which 
     can be read in with spectral_model.load_wavelength_array()
     '''
-    tmp = np.load('other_data/apogee_visit_wavelength.npz')
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)),'other_data/apogee_visit_wavelength.npz')
+    tmp = np.load(path)
     wave = tmp['wave']
     tmp.close()
     return wave

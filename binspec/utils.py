@@ -1,6 +1,7 @@
 # a few low-level functions that are used throughout
 from __future__ import absolute_import, division, print_function # python2 compatibility
 import numpy as np
+import os
 
 def read_in_neural_network(name = 'normalized_spectra'):
     '''

@@ -164,7 +164,8 @@ def get_radius_NN(input_labels, NN_coeffs_R):
     predict_output = np.sum(w_array_2 * sigmoid(np.sum(w_array_1 * (sigmoid(np.dot(w_array_0,
         scaled_labels) + b_array_0)), axis = 1) + b_array_1).T, axis = 1) + b_array_2
     return predict_output
-    
+
+
 def get_Teff2_logg2_NN(labels, NN_coeffs_Teff2_logg2, force_lower_Teff = True):
     '''
     Use a neural network to predict Teff and logg of the secondary from Teff1, logg1,
@@ -174,34 +175,19 @@ def get_Teff2_logg2_NN(labels, NN_coeffs_Teff2_logg2, force_lower_Teff = True):
     labels = [Teff1, logg1, feh, q]
     outputs [Teff2, logg2]
     '''
-    # if the mass ratio is 1, the two stars should be identical. The NN should predict something
-    # close to identical anyway, but we force it to gaurantee that the normalized spectrum of a 
-    # binary with no velocity offset and q=1 (and same vmacro for both stars) is identical to that
-    # of a single star. 
-    if np.isclose(labels[-1], 1):
-        return labels[:2]
         
     # unpack the NN
-    w_array_0, w_array_1, b_array_0, b_array_1, x_min, x_max = NN_coeffs_Teff2_logg2
+    w_array_0, w_array_1, w_array_2, b_array_0, b_array_1, b_array_2, x_min, x_max = NN_coeffs_Teff2_logg2
     
     # rescale labels the same way as we trained the neural network
     scaled_labels =  (labels - x_min)/(x_max - x_min) - 0.5
     inside = np.dot(w_array_0, scaled_labels) + b_array_0
     outside = np.dot(w_array_1, sigmoid(inside)) + b_array_1
+    outside = np.dot(w_array_2, sigmoid(outside)) + b_array_2
     outside[0] *= 1000 # because the NN was trained to predict Teff/1000
-    
-    # For equal-age, equal-composition stars on the MS, the secondary should always 
-    # be cooler than the primary and have higher logg. This should happen anyway, if the
-    # NN is functioning properly, but one can force it for increased stability. Note
-    # that forcing this would not make sense for giants-dwarf binaries, where the more 
-    # massive star could be cooler. 
-    if force_lower_Teff:
-        if outside[0] > labels[0]: 
-            outside[0] = labels[0]
-        if outside[1] < labels[1]:
-            outside[1] = labels[1]
             
     return outside
+
     
 def single_star_model_visit_spectra(labels, spec_errs, NN_coeffs_norm, NN_coeffs_flux):
     '''

@@ -1,9 +1,9 @@
 # BinSpec++: Self-consistent binary star spectra
 Tools for modeling and fitting the spectra of multiple-star systems. 
 
-This repository builds on El-Badry's original [binspec](https://github.com/kareemelbadry/binspec) repository. In the original binspec, it only works for APOGEE dwarf stars. Here we try to extend the package to fitting giants also.
+This repository builds on El-Badry's original [binspec](https://github.com/kareemelbadry/binspec) repository. In the original binspec, it only works for APOGEE dwarf stars. Here we extend the package to fitting giants also.
 
-The [tutorial](https://github.com/tingyuansen/binspec_plus/blob/master/tutorial.ipynb) shows some simple use cases, and is only modified slightly from the original tutorial.
+This [tutorial](https://github.com/tingyuansen/binspec_plus/blob/master/tutorial.ipynb) shows some simple use cases, and is only modified slightly from the original tutorial.
 
 Please refer to the original binspec for details, and cite accordingly.
 
@@ -12,7 +12,7 @@ Please refer to the original binspec for details, and cite accordingly.
 Clone this repository and run code from the base directory.
 ```
 python setup.py install
-
+```
 
 ## Authors
 * [Yuan-Sen Ting](http://www.sns.ias.edu/~ting/) -- ting at ias dot edu

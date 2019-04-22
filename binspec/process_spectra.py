@@ -18,13 +18,26 @@ import astropy.io.fits as pyfits
 from . import utils
 from . import spectral_model
 
-# dr14
-master_path = "data.sdss3.org/sas/dr14/apogee/spectro/redux/r8/stars/"
-apVisit_path = "data.sdss3.org/sas/dr14/apogee/spectro/redux/r8/apo25m/"
+os.environ["SDSS_LOCAL_SAS_MIRROR"] = "data.sdss3.org/sas/"
+os.environ["RESULTS_VERS"] = "v603"
+os.environ["APOGEE_APOKASC_REDUX"] = "v6.2a"
+from apogee.spec import continuum
 
-catalog_path = "l31c/l31c.2/"
-catalog_name = "allStar-l31c.2.fits"
-all_visit_name = "allVisit-l31c.2.fits"
+# dr12
+master_path = "data.sdss3.org/sas/dr12/apogee/spectro/redux/r5/stars/"
+apVisit_path = "data.sdss3.org/sas/dr12/apogee/spectro/redux/r5/apo25m/"
+
+catalog_path = "l25_6d/v603/"
+catalog_name = "allStar-v603.fits"
+all_visit_name = "allVisit-v603.fits"
+
+# dr14
+#master_path = "data.sdss3.org/sas/dr14/apogee/spectro/redux/r8/stars/"
+#apVisit_path = "data.sdss3.org/sas/dr14/apogee/spectro/redux/r8/apo25m/"
+
+#catalog_path = "l31c/l31c.2/"
+#catalog_name = "allStar-l31c.2.fits"
+#all_visit_name = "allVisit-l31c.2.fits"
 
 # download path
 download_path = "apogee_download/"
@@ -83,7 +96,8 @@ def get_combined_spectrum_single_object(apogee_id, catalog = None, save_local = 
     field = catalog['FIELD'][msk[0]]
     loc_id = catalog['LOCATION_ID'][msk[0]]
 
-    filename = 'apStar-r8-%s.fits' % apogee_id.strip()
+    filename = 'apStar-r5-%s.fits' % apogee_id.strip() # dr12
+    #filename = 'apStar-r8-%s.fits' % apogee_id.strip() # dr14
     if loc_id == 1:
         filepath = os.path.join(master_path,'apo1m', field.strip(), filename)
     else:
@@ -165,7 +179,8 @@ def get_visit_spectra_individual_object(apogee_id, allvisit_cat = None, save_loc
     
     for i, pid in enumerate(plate_ids):
         filepath = os.path.join(apVisit_path, '%s'%pid, '%s'%mjds[i])
-        filename = 'apVisit-r8-%s-%s-%s.fits' % (pid, mjds[i], fiberids[i])
+        filename = 'apVisit-r5-%s-%s-%s.fits' % (pid, mjds[i], fiberids[i]) # dr12
+        #filename = 'apVisit-r8-%s-%s-%s.fits' % (pid, mjds[i], fiberids[i]) # dr14
         filepath = os.path.join(filepath, filename)
         filename = os.path.join(download_path, filename)
         try:
@@ -198,8 +213,8 @@ def get_visit_spectra_individual_object(apogee_id, allvisit_cat = None, save_loc
                 specerr = np.interp(standard_grid, wave, specerr)
                 wave = np.copy(standard_grid)
             
-            # preliminary normalization using Bovy's visit normalization routine. 
-            cont = fitApvisit(spec, specerr, wave)
+            # preliminary normalization using Bovy's visit normalization routine.
+            cont = continuum.fitApvisit(spec, specerr, wave)
             specnorm, errnorm = spec/cont, specerr/cont
         
             # correct for Earth's orbital motion. 
@@ -315,57 +330,4 @@ def toAspcapGrid(spec):
 
     return out
 
-def fitApvisit(spec, specerr, wave, deg=4, niter=10, usigma=3., lsigma=0.1, cont_pixels=None):
-    """
-    Adapted from Bovy's APOGEE routine
 
-    Continuum fitting routine for apVisit spectra (one spectrum at a time; aspcap method only)
-    INPUT:
-       spec - single spectrum to fit
-       specerr - error on the spectrum; assume no covariances
-       wave - wavelength grid corresponding to spec and specerr; must have length 12288
-       ASPCAP keywords:
-          deg = (4) degree of the polynomial
-          niter = (10) number of sigma-clipping iterations to perform
-          usigma, lsigma = (3., 0.1) upper and lower sigmas for sigma clipping
-    OUTPUT:
-       continuum
-    """
-    # Parse the input
-    tspec = copy.copy(spec)
-    tspecerr = specerr
-    if len(wave) != 12288:
-        raise ValueError('Length of apVisit wavelength array is not 12288; cannot proceed.')
-    if wave[1] < wave[0]: # not sorted by increasing wavelength; fix it
-        wave = np.flipud(wave)
-        tspec = np.flipud(tspec)
-        tspecerr = np.flipud(tspecerr)
-    cont = np.empty_like(tspec)
-    bluewav = wave[0:4096]
-    greenwav = wave[4096:8192]
-    redwav = wave[8192::]
-    # Blue
-    cont[0:4096] = _fit_aspcap(bluewav, tspec[0:4096], tspecerr[0:4096], deg, niter, usigma, lsigma)
-    # Green
-    cont[4096:8192] = _fit_aspcap(greenwav, tspec[4096:8192], tspecerr[4096:8192], deg, niter, usigma, lsigma)
-    # Red
-    cont[8192::] = _fit_aspcap(redwav, tspec[8192::], tspecerr[8192::], deg, niter, usigma, lsigma)
-    return cont
-
-def _fit_aspcap(wav,spec,specerr,deg,niter,usigma,lsigma):
-    """Fit the continuum with an iterative upper/lower rejection"""
-    # Initial fit
-    chpoly= np.polynomial.Chebyshev.fit(wav,spec,deg,w=1./specerr)
-    tcont= chpoly(wav)
-    tres= spec-tcont
-    sig= np.std(tres)
-    mask= (tres < usigma*sig)*(tres > -lsigma*sig)
-    spec[True^mask]= chpoly(wav[True^mask])
-    for ii in range(niter):
-        chpoly= np.polynomial.Chebyshev.fit(wav, spec, deg, w=1./specerr)
-        tcont= chpoly(wav)
-        tres= spec-tcont
-        sig= np.std(tres)
-        mask= (tres < usigma*sig)*(tres > -lsigma*sig)
-        spec[True^mask]= chpoly(wav[True^mask])
-    return chpoly(wav)

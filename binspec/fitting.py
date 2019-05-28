@@ -231,7 +231,7 @@ def fit_visit_spectra_single_star_model(norm_spectra, spec_errs,
             NN_coeffs_flux = NN_coeffs_flux)
         return stitched_model
         
-    lower = np.array([4200, 4.0, -1, -0.3, 0, -100+np.median(v_helios)])
+    lower = np.array([3000, 0.0, -1, -0.3, 0, -100+np.median(v_helios)])
     upper = np.array([7000, 5.0, 0.5, 0.5, 45, 100+np.median(v_helios)])
     bounds = [lower, upper]
     
@@ -272,7 +272,7 @@ def fit_visit_spectra_sb1_model(norm_spectra, spec_errs, NN_coeffs_norm, NN_coef
         return stitched_model
         
     v_min, v_max = np.min(v_helios), np.max(v_helios)
-    lower = np.concatenate([[4200, 4.0, -1, -0.3, 0], len(v_helios) * [-100 + v_min]])
+    lower = np.concatenate([[3000, 0.0, -1, -0.3, 0], len(v_helios) * [-100 + v_min]])
     upper = np.concatenate([[7000, 5.0, 0.5, 0.5, 45], len(v_helios) * [100 + v_max]])
     bounds = [lower, upper]
     
@@ -314,7 +314,7 @@ def fit_visit_spectra_sb2_model(norm_spectra, spec_errs, NN_coeffs_norm, NN_coef
     min_q = get_minimum_q_for_this_teff(Teff1 = teff1, logg1 = logg1, feh = feh, 
         NN_coeffs_Teff2_logg2 = NN_coeffs_Teff2_logg2)
     
-    lower = np.concatenate([[4200, 4.0, -1, -0.3, min_q, 0, 0, 0.2, -100 + v_med], 
+    lower = np.concatenate([[3000, 0.0, -1, -0.3, min_q, 0, 0, 0.2, -100 + v_med], 
         len(v_helios) * [-100 + v_min] ])
     upper = np.concatenate([[7000, 5.0, 0.5, 0.5, 1, 45, 45, 1.5, 100 + v_med],
         len(v_helios) * [100 + v_max]])

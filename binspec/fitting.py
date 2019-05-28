@@ -41,7 +41,7 @@ def fit_normalized_spectrum_single_star_model(norm_spec, spec_err,
         p0 = [5777, 4.44, 0, 0, 5, 0]
         
     # don't allow the minimimizer outside Teff = [4200, 7000], etc. 
-    bounds = [[4200, 4.0, -1, -0.3, 0, -100], [7000, 5.0, 0.5, 0.5, 45, 100]]
+    bounds = [[3000, 0.0, -1, -0.3, 0, -100], [7000, 5.0, 0.5, 0.5, 45, 100]]
     
     # if we want to initialize many walkers in different parts of parameter space, do so now. 
     all_x0 = generate_starting_guesses_to_initialze_optimizers(p0 = p0, bounds = bounds, 
@@ -95,7 +95,7 @@ def fit_normalized_spectrum_binary_model(norm_spec, spec_err,
     min_q = get_minimum_q_for_this_teff(Teff1 = teff1, logg1 = logg1, feh = feh, 
         NN_coeffs_Teff2_logg2 = NN_coeffs_Teff2_logg2)
         
-    lower = [4200, 4.0, -1, -0.3, min_q, 0, 0, -100, -100]
+    lower = [3000, 0.0, -1, -0.3, min_q, 0, 0, -100, -100]
     upper = [7000, 5.0, 0.5, 0.5, 1, 45, 45, 100, 100]
     bounds = [lower, upper]
     
@@ -199,7 +199,7 @@ def generate_starting_guesses_to_initialze_optimizers(p0, bounds, num_p0, vrange
                 all_x0[j][i] = bounds[1][i] - 1e-5
     return all_x0
 
-def get_minimum_q_for_this_teff(Teff1, logg1, feh, NN_coeffs_Teff2_logg2, min_teff = 4200):
+def get_minimum_q_for_this_teff(Teff1, logg1, feh, NN_coeffs_Teff2_logg2, min_teff = 3000):
     '''
     Because the spectra model is only reliable down to some minimum temperature 
         (4200 K in the paper), there's a minimum mass ratio q that can be modeled

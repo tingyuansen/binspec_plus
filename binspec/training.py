@@ -115,9 +115,9 @@ def neural_net(training_labels, training_spectra, training_spectra_err,\
     validation_loss = []
     while t < num_steps:
         y_pred = model(x)
-        loss = ((y_pred-y).pow(2)/(y_err.pow(2)).mean() # assume L2 loss
+        loss = ((y_pred-y).pow(2)/(y_err.pow(2))).mean() # assume L2 loss
         y_pred_valid = model(x_valid)
-        loss_valid = ((y_pred_valid-y_valid).pow(2)/(y_valid_err.pow(2)).mean()
+        loss_valid = ((y_pred_valid-y_valid).pow(2)/(y_valid_err.pow(2))).mean()
     
         optimizer.zero_grad()
         loss.backward()

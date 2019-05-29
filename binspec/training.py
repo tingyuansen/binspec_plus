@@ -4,19 +4,16 @@ given any set of stellar labels (stellar parameters + elemental abundances).
 
 Note that, the approach here is slightly different from Ting+18. Instead of 
 training individual small networks for each pixel separately, we train a single
- large network for all Pixels simultaneously. 
+large network for all pixels simultaneously. 
 
 The advantage of doing so is that individual pixels could exploit information 
 from the adjacent pixel. This usually leads to more precise interpolations of 
 spectral models.
 
 However to train a large network, GPUs are needed, and this code will 
-only run with GPUs. But even for a simple, inexpensive GPU (GTX 1060), this code 
-should be pretty efficient -- any grid of spectral models with 1000-10000 
-training spectra, with > 10 labels, it should not take more than a day to train
-
-The default training set are synthetic spectra the Kurucz models and have been
- convolved to the appropriate R (~22500 for APOGEE) with the APOGEE LSF.
+only run with GPUs. But even for a simple, inexpensive, GPU (GTX 1060), this code 
+should be pretty efficient -- for any grid of spectral models with 1000-10000 
+training spectra and > 10 labels, it should not take more than a day to train
 '''
 
 from __future__ import absolute_import, division, print_function # python2 compatibility
@@ -26,14 +23,20 @@ import os
 import torch
 from torch.autograd import Variable
 
-def neural_net(training_labels, training_spectra, validation_labels, validation_spectra,\
-             num_neurons = 300, num_steps=1e5, learning_rate=0.001):
+def neural_net(training_labels, training_spectra, training_spectra_err,\
+               validation_labels, validation_spectra, validation_spectra_err,\
+               num_neurons = 300, num_steps=1e5, learning_rate=0.001):
 
     '''
     Training neural networks to emulate spectral models
     
     training_labels has the dimension of [# training spectra, # stellar labels]
-    training_spectra has the dimension of [# training spectra, # wavelength pixels]
+    training_spectra and training_spectra_err have the dimension of 
+    [# training spectra, # wavelength pixels]
+
+    training_spectra_err and validation_spectra_err account for the flux errors in 
+    the empirical training spectra. If a large error is assumed for a particular pixel, 
+    it essentially excludes such pixel from contributing to the training cost
 
     The validation set is used to independently evaluate how well the neural networks
     are emulating the spectra. If the networks overfit the spectral variation, while 
@@ -44,9 +47,9 @@ def neural_net(training_labels, training_spectra, validation_labels, validation_
     before the networks start to overfit (gauged by the validation set).
 
     num_neurons = number of neurons per hidden layer in the neural networks. 
-    We assume a 2 hidden-layer neural networks.
-    Increasing this number increases the complexity of the network, which can 
-    capture a more subtle variation of flux as a function of stellar labels, but
+    We assume a 2 hidden-layer neural network.
+    Increasing this number increases the complexity of the network, which could be helpful 
+    in capturing a more subtle variation of flux as a function of stellar labels, but
     increasing the complexity could also lead to overfitting. And it is also slower 
     to train with a larger network.
 
@@ -56,7 +59,7 @@ def neural_net(training_labels, training_spectra, validation_labels, validation_
     also change this. You can get a sense of how many steps are needed for a new 
     NN architecture by plotting the loss function evaluated on both the training set 
     and a validation set as a function of step number. It should plateau once the NN 
-    is converged.  
+    has converged.  
 
     learning_rate = step size to take for gradient descent
     This is also tunable, but 0.001 seems to work well for most use cases. Again, 
@@ -65,7 +68,7 @@ def neural_net(training_labels, training_spectra, validation_labels, validation_
     returns:
         training loss and validation loss (per 1000 steps)
         the codes also outputs a numpy saved array ""NN_normalized_spectra.npz" 
-        which can be imported and substitute the default neural networks (see tutorial)
+        which can be imported and substitutes the default neural networks (see tutorial)
     '''
     
     # run on cuda
@@ -93,16 +96,15 @@ def neural_net(training_labels, training_spectra, validation_labels, validation_
         torch.nn.Linear(num_neurons, num_pixel)
     )
     model.cuda()
-
-    # assume L2 loss
-    loss_fn = torch.nn.MSELoss(reduction = 'mean')
     
     # make pytorch variables
     x = Variable(torch.from_numpy(x)).type(dtype)
     y = Variable(torch.from_numpy(training_spectra), requires_grad=False).type(dtype)
+    y_err = Variable(torch.from_numpy(training_spectra_err), requires_grad=False).type(dtype)
     x_valid = Variable(torch.from_numpy(x_valid)).type(dtype)
     y_valid = Variable(torch.from_numpy(validation_spectra), requires_grad=False).type(dtype)
-
+    y_valid_err = Variable(torch.from_numpy(validation_spectra_err), requires_grad=False).type(dtype)
+    
     # weight_decay is for regularization. Not required, but one can play with it. 
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay = 0)
 
@@ -113,9 +115,9 @@ def neural_net(training_labels, training_spectra, validation_labels, validation_
     validation_loss = []
     while t < num_steps:
         y_pred = model(x)
-        loss = loss_fn(y_pred, y)*1e4
+        loss = (y_pred-y).pow(2)/(y_err.pow(2)).mean() # assume L2 loss
         y_pred_valid = model(x_valid)
-        loss_valid = loss_fn(y_pred_valid, y_valid)*1e4
+        loss_valid = (y_pred_valid-y_valid).pow(2)/(y_valid_err.pow(2)).mean()
     
         optimizer.zero_grad()
         loss.backward()

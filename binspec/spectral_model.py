@@ -29,13 +29,14 @@ def get_spectrum_from_neural_net(labels, NN_coeffs, normalized = False):
     else:
         norm = 1e6
     
-    # assuming your NN was only a single hidden layer. 
-    w_array_0, w_array_1, b_array_0, b_array_1, x_min, x_max = NN_coeffs
+    # assuming your NN was only a single hidden layer.
+    w_array_0, w_array_1, w_array_2, b_array_0, b_array_1, b_array_2, x_min, x_max = NN_coeffs
     scaled_labels = (labels - x_min)/(x_max - x_min) - 0.5
     
     # this is just efficient matrix multiplication. quite a bit faster than np.dot()
-    inside = np.einsum('ijk,k->ij', w_array_0, scaled_labels) + b_array_0
-    outside = np.einsum('ij,ij->i', w_array_1, sigmoid(inside)) + b_array_1
+    inside = np.einsum('ij,j->i', w_array_0, scaled_labels) + b_array_0
+    outside = np.einsum('ij,j->i', w_array_1, sigmoid(inside)) + b_array_1
+    spectrum = np.einsum('ij,j->i', w_array_2, sigmoid(outside)) + b_array_2
     spectrum = outside/norm
     return spectrum
     

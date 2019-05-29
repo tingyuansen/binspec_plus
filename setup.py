@@ -11,4 +11,4 @@ setup(name='binspec',
       packages=['binspec'],
       package_data={'binspec':['other_data/*.npz','neural_nets/*.npz']},
       dependency_links = [],
-      install_requires=['torch', 'torchvision'])
+      install_requires=['torch>=1.1', 'torchvision'])

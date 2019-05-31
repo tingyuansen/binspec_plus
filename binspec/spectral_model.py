@@ -37,7 +37,7 @@ def get_spectrum_from_neural_net(labels, NN_coeffs, normalized = False):
     inside = np.einsum('ij,j->i', w_array_0, scaled_labels) + b_array_0
     outside = np.einsum('ij,j->i', w_array_1, sigmoid(inside)) + b_array_1
     spectrum = np.einsum('ij,j->i', w_array_2, sigmoid(outside)) + b_array_2
-    spectrum = outside/norm
+    spectrum = spectrum/norm
     return spectrum
     
 def get_unnormalized_spectrum_single_star(labels, NN_coeffs_norm, NN_coeffs_flux, 

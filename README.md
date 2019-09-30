@@ -20,7 +20,7 @@ python setup.py install
 
 ## Licensing
 
-Copyright 2018 by Yuan-Sen Ting.
+Copyright 2019 by Yuan-Sen Ting.
 
 In brief, you can use, distribute, and change this package as you please. 
 
